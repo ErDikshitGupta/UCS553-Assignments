@@ -1,0 +1,318 @@
+Q1)
+import java.util.*;
+
+class Course {
+    String courseCode;
+    int capacity;
+    HashSet<String> enrolledStudents;
+    ArrayList<String> prerequisites;
+    LinkedList<String> waitlist;
+
+    Course(String courseCode, int capacity, ArrayList<String> prerequisites) {
+        this.courseCode = courseCode;
+        this.capacity = capacity;
+        this.prerequisites = prerequisites;
+        this.enrolledStudents = new HashSet<>();
+        this.waitlist = new LinkedList<>();
+    }
+}
+
+public class CourseRegistrationPortal {
+
+    HashMap<String, Course> courses = new HashMap<>();
+    HashMap<String, HashSet<String>> completedCourses = new HashMap<>();
+    void addCourse(String code, int capacity, ArrayList<String> prerequisites) {
+        courses.put(code, new Course(code, capacity, prerequisites));
+        System.out.println("Course added: " + code);
+    }
+    void completeCourse(String studentId, String courseCode) {
+        completedCourses
+            .computeIfAbsent(studentId, k -> new HashSet<>())
+            .add(courseCode);
+    }
+
+    boolean hasPrerequisites(String studentId, Course course) {
+        HashSet<String> completed = completedCourses.getOrDefault(
+            studentId, new HashSet<>()
+        );
+
+        return completed.containsAll(course.prerequisites);
+    }
+
+
+    void registerStudent(String studentId, String courseCode) {
+        Course course = courses.get(courseCode);
+
+        if (course == null) {
+            System.out.println("Course not found: " + courseCode);
+            return;
+        }
+
+        if (!hasPrerequisites(studentId, course)) {
+            System.out.println(studentId +
+                " has not completed prerequisites for " + courseCode);
+            return;
+        }
+
+        if (course.enrolledStudents.contains(studentId)) {
+            System.out.println(studentId + " is already enrolled.");
+            return;
+        }
+
+        if (course.waitlist.contains(studentId)) {
+            System.out.println(studentId + " is already waitlisted.");
+            return;
+        }
+
+        if (course.enrolledStudents.size() < course.capacity) {
+            course.enrolledStudents.add(studentId);
+            System.out.println(studentId +
+                " registered successfully for " + courseCode);
+        } else {
+            course.waitlist.addLast(studentId);
+            System.out.println(studentId +
+                " added to waitlist for " + courseCode);
+        }
+    }
+
+    void dropStudent(String studentId, String courseCode) {
+        Course course = courses.get(courseCode);
+
+        if (course == null) {
+            System.out.println("Course not found.");
+            return;
+        }
+
+        if (!course.enrolledStudents.remove(studentId)) {
+            System.out.println(studentId + " is not enrolled.");
+            return;
+        }
+
+        System.out.println(studentId + " dropped " + courseCode);
+
+        if (!course.waitlist.isEmpty()) {
+            String nextStudent = course.waitlist.removeFirst();
+            course.enrolledStudents.add(nextStudent);
+
+            System.out.println(nextStudent +
+                " promoted from waitlist to " + courseCode);
+        }
+    }
+    void displayCourse(String courseCode) {
+        Course course = courses.get(courseCode);
+
+        if (course == null) {
+            System.out.println("Course not found.");
+            return;
+        }
+
+        System.out.println("\nCourse: " + course.courseCode);
+        System.out.println("Capacity: " + course.capacity);
+        System.out.println("Prerequisites: " + course.prerequisites);
+        System.out.println("Enrolled students: " +
+            course.enrolledStudents);
+        System.out.println("Waitlist: " + course.waitlist);
+    }
+
+    public static void main(String[] args) {
+        CourseRegistrationPortal portal =
+            new CourseRegistrationPortal();
+
+        portal.addCourse("JAVA101", 2, new ArrayList<>());
+        portal.addCourse("JAVA201", 2,
+            new ArrayList<>(Arrays.asList("JAVA101")));
+
+        portal.completeCourse("S101", "JAVA101");
+        portal.completeCourse("S102", "JAVA101");
+        portal.completeCourse("S103", "JAVA101");
+
+        portal.registerStudent("S101", "JAVA201");
+        portal.registerStudent("S102", "JAVA201");
+        portal.registerStudent("S103", "JAVA201");
+
+        portal.displayCourse("JAVA201");
+        portal.dropStudent("S101", "JAVA201");
+        portal.displayCourse("JAVA201");
+    }
+}
+
+
+Q2)
+
+import java.util.*;
+
+class Song {
+    String title;
+    String artist;
+
+    Song(String title, String artist) {
+        this.title = title;
+        this.artist = artist;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Song)) return false;
+
+        Song other = (Song) obj;
+        return title.equalsIgnoreCase(other.title)
+            && artist.equalsIgnoreCase(other.artist);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+            title.toLowerCase(),
+            artist.toLowerCase()
+        );
+    }
+
+    @Override
+    public String toString() {
+        return title + " - " + artist;
+    }
+}
+
+public class MediaPlayerQueue {
+
+    LinkedList<Song> playlist = new LinkedList<>();
+    LinkedList<Song> recentHistory = new LinkedList<>();
+
+    // Add a song at the end
+    void addSong(Song song) {
+        playlist.addLast(song);
+        System.out.println("Added: " + song);
+    }
+
+    // Add a priority song at the beginning
+    void addPrioritySong(Song song) {
+        playlist.addFirst(song);
+        System.out.println("Priority song added: " + song);
+    }
+
+    // Insert a song at a specific position (zero-based index)
+    void addSongAt(int index, Song song) {
+        if (index < 0 || index > playlist.size()) {
+            System.out.println("Invalid playlist position.");
+            return;
+        }
+
+        playlist.add(index, song);
+        System.out.println("Inserted at position " + index +
+            ": " + song);
+    }
+
+    // Remove the first occurrence of a song
+    void removeSong(Song song) {
+        if (playlist.remove(song)) {
+            System.out.println("Removed: " + song);
+        } else {
+            System.out.println("Song not found: " + song);
+        }
+    }
+
+    // Remove duplicate songs while preserving first occurrences
+    void removeDuplicates() {
+        HashSet<Song> seen = new HashSet<>();
+        Iterator<Song> iterator = playlist.iterator();
+
+        while (iterator.hasNext()) {
+            Song song = iterator.next();
+
+            if (!seen.add(song)) {
+                iterator.remove();
+            }
+        }
+
+        System.out.println("Duplicate songs removed.");
+    }
+
+    // Play a song and update recent history
+    void playSong(Song song) {
+        if (playlist.contains(song)) {
+            recentHistory.remove(song);
+            recentHistory.addFirst(song);
+
+            System.out.println("Now playing: " + song);
+        } else {
+            System.out.println("Song is not in the playlist.");
+        }
+    }
+
+    // Display playlist from beginning to end
+    void displayForward() {
+        System.out.println("\nPlaylist (Forward):");
+
+        ListIterator<Song> iterator = playlist.listIterator();
+
+        while (iterator.hasNext()) {
+            System.out.println(iterator.next());
+        }
+    }
+
+    // Display playlist from end to beginning
+    void displayBackward() {
+        System.out.println("\nPlaylist (Backward):");
+
+        ListIterator<Song> iterator =
+            playlist.listIterator(playlist.size());
+
+        while (iterator.hasPrevious()) {
+            System.out.println(iterator.previous());
+        }
+    }
+
+    // Display recently played songs
+    void displayRecentHistory() {
+        System.out.println("\nRecently Played:");
+
+        for (Song song : recentHistory) {
+            System.out.println(song);
+        }
+    }
+
+    public static void main(String[] args) {
+        MediaPlayerQueue player = new MediaPlayerQueue();
+
+        Song s1 = new Song("Perfect", "Ed Sheeran");
+        Song s2 = new Song("Believer", "Imagine Dragons");
+        Song s3 = new Song("Shape of You", "Ed Sheeran");
+        Song s4 = new Song("Believer", "Imagine Dragons");
+
+        // Add songs
+        player.addSong(s1);
+        player.addSong(s2);
+        player.addSong(s3);
+        player.addSong(s4); // Duplicate
+
+        // Insert a song at a particular position
+        player.addSongAt(1,
+            new Song("Blinding Lights", "The Weeknd"));
+
+        // Add a priority song at the beginning
+        player.addPrioritySong(
+            new Song("Levitating", "Dua Lipa"));
+
+        // Remove duplicates
+        player.removeDuplicates();
+
+        // Display playlist in both directions
+        player.displayForward();
+        player.displayBackward();
+
+        // Play songs and update recent history
+        player.playSong(s1);
+        player.playSong(s3);
+        player.playSong(s2);
+
+        // Display recent history
+        player.displayRecentHistory();
+
+        // Remove a song
+        player.removeSong(s1);
+
+        // Display final playlist
+        player.displayForward();
+    }
+}
