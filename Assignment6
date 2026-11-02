@@ -1,0 +1,207 @@
+Q1)
+
+import java.io.*;
+import java.util.Scanner;
+
+public class FileHandling {
+
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+
+        // Writing student details into a text file
+        try (FileWriter fw = new FileWriter("students.txt")) {
+
+            System.out.print("Enter Student ID: ");
+            String id = sc.nextLine();
+
+            System.out.print("Enter Student Name: ");
+            String name = sc.nextLine();
+
+            System.out.print("Enter Student Course: ");
+            String course = sc.nextLine();
+
+            System.out.print("Enter Student Marks: ");
+            String marks = sc.nextLine();
+
+            fw.write("Student ID: " + id + "\n");
+            fw.write("Student Name: " + name + "\n");
+            fw.write("Course: " + course + "\n");
+            fw.write("Marks: " + marks + "\n");
+
+            System.out.println("\nStudent details saved successfully.");
+
+        } catch (IOException e) {
+            System.out.println("Error writing file: " + e.getMessage());
+        }
+
+        // Reading student details from text file
+        try (FileReader fr = new FileReader("students.txt")) {
+
+            int ch;
+
+            System.out.println("\nStudent Records:");
+
+            while ((ch = fr.read()) != -1) {
+                System.out.print((char) ch);
+            }
+
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + e.getMessage());
+        }
+
+        // Copying a binary file using byte streams
+        try (FileInputStream fis = new FileInputStream("source.bin");
+             FileOutputStream fos = new FileOutputStream("copy.bin")) {
+
+            int data;
+
+            while ((data = fis.read()) != -1) {
+                fos.write(data);
+            }
+
+            System.out.println("\nBinary file copied successfully.");
+
+        } catch (IOException e) {
+            System.out.println("Error copying binary file: " + e.getMessage());
+        }
+
+        sc.close();
+    }
+}
+
+
+Q2)
+
+import java.io.*;
+
+public class LogAnalyzer {
+
+    public static void main(String[] args) {
+
+        int totalEntries = 0;
+        int errorCount = 0;
+        int warningCount = 0;
+
+        try (
+            BufferedReader br = new BufferedReader(
+                new FileReader("application.log"));
+
+            BufferedWriter bw = new BufferedWriter(
+                new FileWriter("filtered.log"))
+        ) {
+
+            String line;
+
+            while ((line = br.readLine()) != null) {
+
+                totalEntries++;
+
+                if (line.toUpperCase().contains("ERROR")) {
+
+                    bw.write(line);
+                    bw.newLine();
+                    errorCount++;
+
+                } else if (line.toUpperCase().contains("WARNING")) {
+
+                    bw.write(line);
+                    bw.newLine();
+                    warningCount++;
+
+                }
+            }
+
+            System.out.println("Log Analysis Completed!");
+            System.out.println("Total Log Entries: " + totalEntries);
+            System.out.println("Total Errors: " + errorCount);
+            System.out.println("Total Warnings: " + warningCount);
+
+            System.out.println(
+                "Filtered entries saved in filtered.log");
+
+        } catch (IOException e) {
+
+            System.out.println("File Error: " + e.getMessage());
+
+        }
+    }
+}
+
+
+Q3)
+
+import java.io.*;
+import java.util.ArrayList;
+
+// Employee class
+class Employee implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    int id;
+    String name;
+    String department;
+    double salary;
+
+    Employee(int id, String name, String department, double salary) {
+
+        this.id = id;
+        this.name = name;
+        this.department = department;
+        this.salary = salary;
+    }
+
+    void display() {
+
+        System.out.println("Employee ID: " + id);
+        System.out.println("Name: " + name);
+        System.out.println("Department: " + department);
+        System.out.println("Salary: " + salary);
+        System.out.println("----------------------");
+    }
+}
+
+public class EmployeeSerialization {
+
+    public static void main(String[] args) {
+
+        ArrayList<Employee> employees = new ArrayList<>();
+
+        // Creating employee objects
+        employees.add(new Employee(101, "Rahul", "IT", 50000));
+        employees.add(new Employee(102, "Aman", "HR", 45000));
+        employees.add(new Employee(103, "Priya", "Finance", 60000));
+
+        // Serialization
+        try (ObjectOutputStream oos = new ObjectOutputStream(
+                new FileOutputStream("employees.dat"))) {
+
+            oos.writeObject(employees);
+
+            System.out.println("Employees serialized successfully.");
+
+        } catch (IOException e) {
+
+            System.out.println("Serialization Error: " + e.getMessage());
+        }
+
+        // Deserialization
+        try (ObjectInputStream ois = new ObjectInputStream(
+                new FileInputStream("employees.dat"))) {
+
+            ArrayList<Employee> retrievedEmployees =
+                (ArrayList<Employee>) ois.readObject();
+
+            System.out.println("\nRetrieved Employee Records:");
+
+            for (Employee emp : retrievedEmployees) {
+                emp.display();
+            }
+
+        } catch (IOException | ClassNotFoundException e) {
+
+            System.out.println("Deserialization Error: " + e.getMessage());
+        }
+    }
+}
